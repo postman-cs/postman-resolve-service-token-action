@@ -3,6 +3,7 @@ import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 
 const release = readFileSync(join(process.cwd(), '.github/workflows/release.yml'), 'utf8');
+const backfill = readFileSync(join(process.cwd(), '.github/workflows/backfill-npm.yml'), 'utf8');
 const sea = readFileSync(join(process.cwd(), '.github/workflows/sea-binary.yml'), 'utf8');
 const ci = readFileSync(join(process.cwd(), '.github/workflows/ci.yml'), 'utf8');
 
@@ -128,6 +129,7 @@ describe('release workflow contract', () => {
     expect(buildSea).toContain('build/sea/postman-resolve-service-token-*-linux-x64.sha256');
     expect(publish).toContain('contents: write');
     expect(publish).toContain('id-token: write');
+    expect(publish).toContain('published: ${{ steps.npm-publish.outputs.published }}');
     expect(publish).not.toContain('actions/checkout');
     expect(publish).not.toContain('cache: npm');
     expect(publish).not.toContain('npm ci');
@@ -149,7 +151,7 @@ describe('release workflow contract', () => {
     expect(publish).toContain('tarball package identity mismatch');
     expect(publish).toContain('SEA sidecar digest does not match executable and manifest');
     expect(publish.indexOf('Verify checksummed release artifacts')).toBeLessThan(
-      publish.indexOf('Publish or verify npm package identity')
+      publish.indexOf('softprops/action-gh-release')
     );
     expect(publish).toContain(
       `ACTUAL=$(node -e "const {createHash}=require('node:crypto'); console.log('sha512-'+createHash('sha512').update(require('node:fs').readFileSync('release.tgz')).digest('base64'))")`
@@ -157,19 +159,30 @@ describe('release workflow contract', () => {
     expect(publish).toContain(
       `test "$INTEGRITY" = "$ACTUAL" || { echo '::error::existing npm package integrity differs from staged tarball'; exit 1; }`
     );
-    expect(publish.indexOf('Publish or verify npm package identity')).toBeLessThan(
-      publish.indexOf('softprops/action-gh-release')
+    expect(publish.indexOf('softprops/action-gh-release')).toBeLessThan(
+      publish.indexOf('Publish or verify npm package identity')
     );
+    expect(publish).toContain('id: npm-publish');
+    expect(publish).toContain('continue-on-error: true');
+    expect(publish).toContain('set -euo pipefail');
+    expect(publish).toContain("sed -i '/_authToken/d'");
+    expect(publish).toContain('echo "published=false" >> "$GITHUB_OUTPUT"');
+    expect(publish).toContain('echo "published=true" >> "$GITHUB_OUTPUT"');
     expect(publish.indexOf("createHash('sha512')")).toBeLessThan(
       publish.indexOf('npm publish ./release.tgz --provenance --access public')
     );
     expect(publish.indexOf('existing npm package integrity differs from staged tarball')).toBeLessThan(
       publish.indexOf('npm publish ./release.tgz --provenance --access public')
     );
-    expect(publish.indexOf('npm publish ./release.tgz --provenance --access public')).toBeLessThan(
+    expect(publish.indexOf('npm publish ./release.tgz --provenance --access public')).toBeGreaterThan(
       publish.indexOf('softprops/action-gh-release')
     );
     expect(publish).toContain('npm view "$PKG_NAME@$PKG_VERSION" dist.integrity');
+    expect(publish).toContain('name: Verify npm registry identity');
+    expect(publish).toContain("if: steps.npm-publish.outputs.published == 'true'");
+    expect(publish).toContain('name: Report npm publish skipped');
+    expect(publish).toContain("if: steps.npm-publish.outputs.published != 'true'");
+    expect(publish).toContain('recover via backfill-npm.yml once publish access exists');
     expect(release.indexOf('  publish:')).toBeLessThan(release.indexOf('  advance-major-alias:'));
   });
 
@@ -205,5 +218,20 @@ describe('release workflow contract', () => {
       expect(workflow).not.toContain('actions/setup-go');
       expect(workflow).not.toContain('go install github.com/rhysd/actionlint');
     }
+  });
+
+  it('backfills only immutable new-scope release assets without changing release channels', () => {
+    expect(backfill).toContain('workflow_dispatch:');
+    expect(backfill).toContain('Ordered space-separated immutable tags, oldest first');
+    expect(backfill).toContain('contents: read');
+    expect(backfill).toContain('id-token: write');
+    expect(backfill).not.toContain('actions/checkout');
+    expect(backfill).toContain("PKG_NAME='@postman/onboarding-resolve-service-token'");
+    expect(backfill).toContain('gh release download "$TAG" --repo "$GITHUB_REPOSITORY" --pattern \'release.tgz\'');
+    expect(backfill).toContain('test "$PACKAGE_NAME" = "$PKG_NAME"');
+    expect(backfill).toContain('test "$PACKAGE_VERSION" = "${TAG#v}"');
+    expect(backfill).toContain('npm publish "$TARBALL" --provenance --access public --tag backfill');
+    expect(backfill).toContain('npm view "$PKG_NAME" versions --json');
+    expect(backfill).toContain('npm dist-tag add "$PKG_NAME@$HIGHEST" latest');
   });
 });

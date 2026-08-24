@@ -1,0 +1,63 @@
+name: Backfill npm
+
+on:
+  workflow_dispatch:
+    inputs:
+      tags:
+        description: Ordered space-separated immutable tags, oldest first
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  backfill:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+          registry-url: 'https://registry.npmjs.org'
+      - name: Publish immutable release assets to npm
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          GH_TOKEN: ${{ github.token }}
+          TAGS: ${{ inputs.tags }}
+        run: |
+          set -euo pipefail
+          if [ -z "${NODE_AUTH_TOKEN:-}" ]; then sed -i '/_authToken/d' "${NPM_CONFIG_USERCONFIG:-$HOME/.npmrc}"; fi
+          PKG_NAME='@postman/onboarding-resolve-service-token'
+          for TAG in $TAGS; do
+            DIR="$(mktemp -d)"
+            trap 'rm -rf "$DIR"' EXIT
+            gh release download "$TAG" --repo "$GITHUB_REPOSITORY" --pattern 'release.tgz' --dir "$DIR"
+            TARBALL="$DIR/release.tgz"
+            PACKAGE_JSON="$(tar -xOf "$TARBALL" package/package.json)"
+            PACKAGE_NAME="$(node -e "const p=JSON.parse(process.argv[1]); process.stdout.write(p.name)" "$PACKAGE_JSON")"
+            PACKAGE_VERSION="$(node -e "const p=JSON.parse(process.argv[1]); process.stdout.write(p.version)" "$PACKAGE_JSON")"
+            test "$PACKAGE_NAME" = "$PKG_NAME"
+            test "$PACKAGE_VERSION" = "${TAG#v}"
+            if npm view "$PKG_NAME@$PACKAGE_VERSION" version >/dev/null 2>&1; then
+              echo "::notice::$PKG_NAME@$PACKAGE_VERSION already exists; skipping"
+            else
+              npm publish "$TARBALL" --provenance --access public --tag backfill
+            fi
+            rm -rf "$DIR"
+            trap - EXIT
+          done
+          HIGHEST="$(npm view "$PKG_NAME" versions --json | node -e '
+            let input = "";
+            process.stdin.on("data", (chunk) => input += chunk).on("end", () => {
+              const versions = JSON.parse(input);
+              const compare = (a, b) => {
+                const pa = a.split(/[-+]/, 1)[0].split(".").map(Number);
+                const pb = b.split(/[-+]/, 1)[0].split(".").map(Number);
+                for (let i = 0; i < 3; i += 1) if (pa[i] !== pb[i]) return pa[i] - pb[i];
+                return a.localeCompare(b);
+              };
+              process.stdout.write([...versions].sort(compare).at(-1));
+            });
+          ' )"
+          npm dist-tag add "$PKG_NAME@$HIGHEST" latest

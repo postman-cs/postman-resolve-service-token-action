@@ -224,6 +224,8 @@ jobs:
     permissions:
       contents: write
       id-token: write
+    outputs:
+      published: ${{ steps.npm-publish.outputs.published }}
     steps:
       - uses: actions/download-artifact@v8
         with:
@@ -326,18 +328,6 @@ jobs:
           const seaEntry = manifest.artifacts.find((artifact) => artifact.path === sea);
           if (!HEX.test(digest) || filename !== sea || digest !== actual || !seaEntry || digest !== seaEntry.sha256) throw new Error('SEA sidecar digest does not match executable and manifest');
           NODE
-      - name: Publish or verify npm package identity
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-        run: |
-          PKG_NAME=$(node -e "const m=require('./release-manifest.json'); console.log(m.package_name)")
-          PKG_VERSION=$(node -e "const m=require('./release-manifest.json'); console.log(m.package_version)")
-          if INTEGRITY=$(npm view "$PKG_NAME@$PKG_VERSION" dist.integrity 2>/dev/null); then
-            ACTUAL=$(node -e "const {createHash}=require('node:crypto'); console.log('sha512-'+createHash('sha512').update(require('node:fs').readFileSync('release.tgz')).digest('base64'))")
-            test "$INTEGRITY" = "$ACTUAL" || { echo '::error::existing npm package integrity differs from staged tarball'; exit 1; }
-          else
-            npm publish ./release.tgz --provenance --access public
-          fi
       - uses: softprops/action-gh-release@3d0d9888cb7fd7b750713d6e236d1fcb99157228 # v3.0.2
         with:
           tag_name: ${{ needs.cut.outputs.tag || github.ref_name }}
@@ -347,6 +337,40 @@ jobs:
             postman-resolve-service-token-*-linux-x64
             postman-resolve-service-token-*-linux-x64.sha256
             release-manifest.json
+      - name: Publish or verify npm package identity
+        id: npm-publish
+        continue-on-error: true
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          set -euo pipefail
+          if [ -z "${NODE_AUTH_TOKEN:-}" ]; then sed -i '/_authToken/d' "${NPM_CONFIG_USERCONFIG:-$HOME/.npmrc}"; fi
+          echo "published=false" >> "$GITHUB_OUTPUT"
+          PKG_NAME=$(node -e "const m=require('./release-manifest.json'); console.log(m.package_name)")
+          PKG_VERSION=$(node -e "const m=require('./release-manifest.json'); console.log(m.package_version)")
+          if INTEGRITY=$(npm view "$PKG_NAME@$PKG_VERSION" dist.integrity 2>/dev/null); then
+            ACTUAL=$(node -e "const {createHash}=require('node:crypto'); console.log('sha512-'+createHash('sha512').update(require('node:fs').readFileSync('release.tgz')).digest('base64'))")
+            test "$INTEGRITY" = "$ACTUAL" || { echo '::error::existing npm package integrity differs from staged tarball'; exit 1; }
+          else
+            npm publish ./release.tgz --provenance --access public
+          fi
+          echo "published=true" >> "$GITHUB_OUTPUT"
+      - name: Verify npm registry identity
+        if: steps.npm-publish.outputs.published == 'true'
+        run: |
+          PKG_NAME=$(node -e "const m=require('./release-manifest.json'); console.log(m.package_name)")
+          PKG_VERSION=$(node -e "const m=require('./release-manifest.json'); console.log(m.package_version)")
+          INTEGRITY=$(npm view "$PKG_NAME@$PKG_VERSION" dist.integrity)
+          ACTUAL=$(node -e "const {createHash}=require('node:crypto'); console.log('sha512-'+createHash('sha512').update(require('node:fs').readFileSync('release.tgz')).digest('base64'))")
+          test "$INTEGRITY" = "$ACTUAL" || { echo '::error::existing npm package integrity differs from staged tarball'; exit 1; }
+      - name: Report npm publish skipped
+        if: steps.npm-publish.outputs.published != 'true'
+        run: |
+          PKG_NAME=$(node -e "const m=require('./release-manifest.json'); console.log(m.package_name)")
+          PKG_VERSION=$(node -e "const m=require('./release-manifest.json'); console.log(m.package_version)")
+          MESSAGE="npm publish for $PKG_NAME@$PKG_VERSION did not complete (missing/invalid NPM_TOKEN or registry error); GitHub Release remains authoritative; recover via backfill-npm.yml once publish access exists"
+          echo "::warning::$MESSAGE"
+          echo "$MESSAGE" >> "$GITHUB_STEP_SUMMARY"
 
   advance-major-alias:
     needs: [cut, classify, publish]
