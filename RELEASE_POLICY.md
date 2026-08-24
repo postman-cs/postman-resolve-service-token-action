@@ -38,13 +38,13 @@ node scripts/release-cut.mjs --plan
 After the tag push, `release.yml` verifies and publishes:
 
 1. Checks out the tagged commit in `verify-package` (ubuntu) and `verify-package-windows` (windows-latest); both consume committed tag bytes with no rebuild. Windows asserts dist present and untouched before and after `node --run test`.
-2. Publish runs only when both verify jobs succeed, then publishes npm with provenance and advances the rolling `v2` alias.
+2. Publish runs only when both verify jobs succeed, verifies local release artifacts, creates the authoritative GitHub Release, then attempts npm publication with provenance and advances the rolling `v2` alias.
 
 The parent relationship is the audit link to reviewed source. The release bytes reproduce with `npm ci && npm run bundle` at the tag commit's parent. A bare tag without committed `dist/` fails artifact verification.
 
 ## npm package
 
-The CLI publishes as `@postman-cse/onboarding-resolve-service-token` with versions that match the immutable GitHub release tag. npm package identity is verified before the GitHub Release is created. The rolling `vN` alias updates the action channel and skips npm publishing.
+The CLI publishes as `@postman/onboarding-resolve-service-token` with versions that match the immutable GitHub release tag. GitHub Releases remain authoritative if npm publication is unavailable; use `backfill-npm.yml` to publish immutable release assets once access exists. npm package identity is verified after a successful publish. The rolling `vN` alias updates the action channel and skips npm publishing.
 
 ## Compatibility
 

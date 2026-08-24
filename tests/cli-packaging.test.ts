@@ -321,7 +321,7 @@ describe('CLI packaging contract', () => {
       name: string;
       files: Array<{ mode: number; path: string }>;
     }>;
-    expect(packed.name).toBe('@postman-cse/onboarding-resolve-service-token');
+    expect(packed.name).toBe('@postman/onboarding-resolve-service-token');
     expect(
       packed.files.filter((file) => file.path.startsWith('dist/')).map((file) => file.path).sort()
     ).toEqual(['dist/cli.cjs', 'dist/index.cjs']);

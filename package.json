@@ -1,5 +1,5 @@
 {
-  "name": "@postman-cse/onboarding-resolve-service-token",
+  "name": "@postman/onboarding-resolve-service-token",
   "version": "2.1.0",
   "description": "Recommended Postman service-account token producer for GitHub Actions and CLI.",
   "type": "module",

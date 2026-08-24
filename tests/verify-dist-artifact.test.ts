@@ -16,7 +16,7 @@ interface RepoConfig {
   census: string[];
 }
 
-const CONFIG: RepoConfig = {"pkgName":"@postman-cse/onboarding-resolve-service-token","binName":"postman-resolve-service-token","pkgMain":"dist/index.cjs","actionMain":"dist/index.cjs","census":["cli.cjs","index.cjs"]};
+const CONFIG: RepoConfig = {"pkgName":"@postman/onboarding-resolve-service-token","binName":"postman-resolve-service-token","pkgMain":"dist/index.cjs","actionMain":"dist/index.cjs","census":["cli.cjs","index.cjs"]};
 
 const execFileAsync = promisify(execFile);
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');

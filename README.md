@@ -1,6 +1,6 @@
 # Postman Onboarding: Service Token
 
-[![CI](https://github.com/postman-cs/postman-resolve-service-token-action/actions/workflows/ci.yml/badge.svg)](https://github.com/postman-cs/postman-resolve-service-token-action/actions/workflows/ci.yml) [![Release](https://img.shields.io/github/v/release/postman-cs/postman-resolve-service-token-action?sort=semver)](https://github.com/postman-cs/postman-resolve-service-token-action/releases) [![npm](https://img.shields.io/npm/v/%40postman-cse%2Fonboarding-resolve-service-token)](https://www.npmjs.com/package/@postman-cse/onboarding-resolve-service-token) [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![CI](https://github.com/postman-cs/postman-resolve-service-token-action/actions/workflows/ci.yml/badge.svg)](https://github.com/postman-cs/postman-resolve-service-token-action/actions/workflows/ci.yml) [![Release](https://img.shields.io/github/v/release/postman-cs/postman-resolve-service-token-action?sort=semver)](https://github.com/postman-cs/postman-resolve-service-token-action/releases) [![npm](https://img.shields.io/npm/v/%40postman%2Fonboarding-resolve-service-token)](https://www.npmjs.com/package/@postman/onboarding-resolve-service-token) [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
 Recommended credential producer for the Postman API Onboarding suite. It mints a fresh service-account access token and team ID in CI, ready to hand to the onboarding action or store as repo secrets.
 
@@ -143,7 +143,7 @@ When both inputs are provided the action is effectively a passthrough with `outp
 The same token resolution is available outside GitHub Actions:
 
 ```bash
-npx @postman-cse/onboarding-resolve-service-token \
+npx @postman/onboarding-resolve-service-token \
   --postman-api-key "$POSTMAN_API_KEY"
 ```
 
@@ -243,7 +243,7 @@ Releases follow the stable `v1` channel: immutable `v1.x.y` tags for reproducibl
 
 ## Resources
 
-- npm package: [@postman-cse/onboarding-resolve-service-token](https://www.npmjs.com/package/@postman-cse/onboarding-resolve-service-token); sample workflows: [postman-service-account-onboarding-sample](https://github.com/postman-cs/postman-service-account-onboarding-sample)
+- npm package: [@postman/onboarding-resolve-service-token](https://www.npmjs.com/package/@postman/onboarding-resolve-service-token); sample workflows: [postman-service-account-onboarding-sample](https://github.com/postman-cs/postman-service-account-onboarding-sample)
 - Marketplace docs: [Support](SUPPORT.md), [Security policy](SECURITY.md), [Release policy](RELEASE_POLICY.md)
 - Postman references: [service accounts](https://learning.postman.com/docs/administration/service-accounts/), [API authentication](https://learning.postman.com/docs/reference/postman-api/authentication/), [manage API keys](https://learning.postman.com/docs/administration/managing-your-team/managing-api-keys/), [Postman CLI auth](https://learning.postman.com/docs/postman-cli/postman-cli-auth/), [EU data residency](https://learning.postman.com/docs/administration/enterprise/about-eu-data-residency/)
 - [Self-contained binary](docs/self-contained-binary.md): the no-npm/no-Node release binary for locked-down agents — install, credential minting, host allowlist, and a Jenkins pipeline.
