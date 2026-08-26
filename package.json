@@ -52,7 +52,7 @@
   },
   "dependencies": {
     "@actions/core": "^3.0.1",
-    "@postman-cse/automation-core": "^1.6.0",
+    "@postman-cs/automation-core": "^1.8.1",
     "undici": "^8.10.0"
   },
   "devDependencies": {

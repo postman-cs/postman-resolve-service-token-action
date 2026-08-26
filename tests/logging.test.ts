@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { createLogger, type LogSink } from '@postman-cse/automation-core';
+import { createLogger, type LogSink } from '@postman-cs/automation-core';
 
 import { coreLogSink, runResolveServiceToken, type CoreLike, type ResolveInputs } from '../src/index.js';
 

@@ -22,7 +22,7 @@ import {
   validateRouteManifest,
   type RouteManifest,
   type RouteManifestRoute
-} from '@postman-cse/automation-core/route-manifest';
+} from '@postman-cs/automation-core/route-manifest';
 
 const repoRoot = path.resolve(import.meta.dirname, '..', '..');
 const sourceRoot = path.join(repoRoot, 'src');

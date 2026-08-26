@@ -6,7 +6,7 @@ import {
   httpFields,
   type LogSink,
   type Logger
-} from '@postman-cse/automation-core';
+} from '@postman-cs/automation-core';
 import { resolveActionVersion } from './action-version.js';
 import { formatRejectedMint, inspectPmakIdentity, maskPmakDiagnostic } from './pmak-diagnostics.js';
 
