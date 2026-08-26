@@ -1,6 +1,6 @@
 {
   "name": "@postman-cs/onboarding-resolve-service-token",
-  "version": "2.1.0",
+  "version": "2.2.1",
   "description": "Recommended Postman service-account token producer for GitHub Actions and CLI.",
   "type": "module",
   "main": "dist/index.cjs",
