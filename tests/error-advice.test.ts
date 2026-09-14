@@ -1,7 +1,6 @@
 import { beforeEach, describe, expect, test } from 'vitest';
 
 import { runResolveServiceToken, type ResolveDependencies } from '../src/index.js';
-import { resolveTokenIdentity, __resetIdentityMemo } from '../src/credential-identity.js';
 import { __resetPmakDiagnosticMemo, inspectPmakIdentity } from '../src/pmak-diagnostics.js';
 
 function expectNoTerminalControls(text: string): void {
@@ -36,7 +35,6 @@ function createCore() {
 }
 
 beforeEach(() => {
-  __resetIdentityMemo();
   __resetPmakDiagnosticMemo();
 });
 
@@ -754,31 +752,5 @@ describe('style-ban on mint failure messages', () => {
     expect(errorMessage).not.toContain('\u2014');
     expect(errorMessage).not.toContain(' , not ');
     expect(errorMessage).not.toContain(' - not ');
-  });
-});
-
-describe('resolveTokenIdentity (credential-identity.ts)', () => {
-  test('resolves userId, fullName, teamId from /me response', async () => {
-    const fetcher = async () => new Response(JSON.stringify({
-      user: {
-        teamId: 'team-111',
-        id: 'user-22',
-        fullName: 'Jane Doe'
-      }
-    }), { status: 200 });
-
-    const identity = await resolveTokenIdentity('fake-token', 'https://api.getpostman.com', fetcher);
-    expect(identity.teamId).toBe('team-111');
-    expect(identity.userId).toBe('user-22');
-    expect(identity.fullName).toBe('Jane Doe');
-  });
-
-  test('returns undefined fields when /me fails', async () => {
-    const fetcher = async () => new Response('{}', { status: 500 });
-
-    const identity = await resolveTokenIdentity('fake-token', 'https://api.getpostman.com', fetcher);
-    expect(identity.teamId).toBeUndefined();
-    expect(identity.userId).toBeUndefined();
-    expect(identity.fullName).toBeUndefined();
   });
 });
