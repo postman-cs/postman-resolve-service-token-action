@@ -13,7 +13,8 @@ type PatternId = 'newman' | 'pmak-header' | 'pmak-cli-login';
  *   1. minting/re-minting the service-account access token (token-provider mint POST),
  *   2. Insights linking (akita rejects service accounts — insights action only),
  *   3. `postman login --with-api-key` (the Postman CLI has no access-token login),
- * plus the user-approved read-only `GET /me` identity preflight (credential-identity)
+ * plus the user-approved read-only `GET /me` identity calls (index.ts resolver,
+ * pmak-diagnostics probe)
  * and repo-sync's CI-key reuse-vs-mint /me check. Every Postman ASSET op runs on the
  * access-token gateway; a new `x-api-key:` header or `--with-api-key` outside this list
  * is a forbidden PMAK asset op. Newman is banned everywhere (never allowlisted): it

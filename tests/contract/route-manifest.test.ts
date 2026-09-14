@@ -124,11 +124,10 @@ describe('route manifest contract', () => {
     const mint = extraction.routes.find((route) => route.id === 'postman-api POST /service-account-tokens');
     expect(mint?.sources).toEqual(['index.ts:283']);
 
-    // /me is reached from the action entry, the memoized identity helper, and
-    // the PMAK diagnostic probe (the last nested inside raceAbort(...)).
+    // /me is reached from the identity resolver and from the PMAK diagnostic
+    // probe (the last nested inside raceAbort(...)).
     const me = extraction.routes.find((route) => route.id === 'postman-api GET /me');
     expect(me?.sources).toEqual([
-      'credential-identity.ts:58',
       'index.ts:390',
       'pmak-diagnostics.ts:66'
     ]);

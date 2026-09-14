@@ -31,7 +31,7 @@
       "method": "GET",
       "path": "/me",
       "classification": "live-only",
-      "reason": "Resolves team identity for the minted token and backs the PMAK identity diagnosis on a rejected mint. Called with a Bearer token from the action entry, with the same Bearer from the memoized identity helper, and with x-api-key from the PMAK diagnostic probe. No committed cassette: this action has no WS3 cassette set, and the response carries user and team identity."
+      "reason": "Resolves team identity for the minted token and backs the PMAK identity diagnosis on a rejected mint. Called with a Bearer token from the identity resolver in index.ts and with x-api-key from the PMAK diagnostic probe. No committed cassette: this action has no WS3 cassette set, and the response carries user and team identity."
     }
   ]
 }

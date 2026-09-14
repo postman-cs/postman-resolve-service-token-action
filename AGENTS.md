@@ -6,10 +6,11 @@ Credential producer for onboarding suite. Mints fresh service-account access tok
 
 ```
 src/
-  index.ts                # Action entry: reads inputs, mints token, sets outputs
+  index.ts                # Core: SA token exchange + team-ID resolution + shared runner
+  main.ts                 # GitHub Action entry: reads inputs, runs core, sets outputs
   cli.ts                  # CLI adapter; writes JSON/dotenv
-  main.ts                 # Core: SA token exchange + team-ID resolution
-  credential-identity.ts  # iapub session-identity helpers; not referenced by the Action or CLI today
+  pmak-diagnostics.ts     # Rejected-mint PMAK identity diagnosis helpers
+  action-version.ts       # Version string for telemetry/logs
 tests/
 ```
 
@@ -32,7 +33,7 @@ npm run verify:bundle  # build + runtime-shape check
 
 ## Gotchas
 
-- `main.ts` holds real token-exchange logic; `index.ts` = Action shell, `cli.ts` = non-GitHub adapter. Wire any pre-output logic into both entries.
+- `index.ts` holds real token-exchange logic; `main.ts` = Action shell, `cli.ts` = non-GitHub adapter. Wire any pre-output logic into both entries.
 - esbuild bundles `--target=node24`; `dist/` is gitignored build output and is never committed on branches. `npm run bundle` chmods `dist/cli.cjs` executable.
 - Release tags carry `dist/` on tag-only commit parented on reviewed main SHA; main never carries bundled bytes.
 

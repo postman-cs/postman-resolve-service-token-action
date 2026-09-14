@@ -207,6 +207,46 @@ describe('packed-bin invocation plan', () => {
   });
 });
 
+interface NpmPackEntry {
+  filename: string;
+  name: string;
+  files: Array<{ mode?: number; path: string }>;
+}
+
+function isNpmPackEntry(value: unknown): value is NpmPackEntry {
+  if (!value || typeof value !== 'object') return false;
+  const entry = value as Record<string, unknown>;
+  return (
+    typeof entry.filename === 'string' &&
+    typeof entry.name === 'string' &&
+    Array.isArray(entry.files) &&
+    entry.files.every(
+      (file) => !!file && typeof file === 'object' && typeof (file as { path?: unknown }).path === 'string'
+    )
+  );
+}
+
+/**
+ * npm 11 prints `pack --json` as a top-level array; npm 12 prints an object
+ * keyed by package name (observed: 11.17.0 prints an array, 12.0.2 prints an
+ * object). Accept both envelopes, then reject anything else so a future shape
+ * change fails loudly instead of destructuring undefined.
+ */
+function parseNpmPackStdout(stdout: string): NpmPackEntry[] {
+  const parsed: unknown = JSON.parse(stdout);
+  const candidates: unknown[] = Array.isArray(parsed)
+    ? parsed
+    : Object.values((parsed ?? {}) as Record<string, unknown>);
+  const entries = candidates.filter(isNpmPackEntry);
+  if (entries.length !== candidates.length) {
+    throw new Error('npm pack --json printed an entry without filename, name, and files[]');
+  }
+  if (entries.length === 0) {
+    throw new Error('npm pack --json printed no package entries');
+  }
+  return entries;
+}
+
 describe('CLI packaging contract', () => {
   it('builds a Node shebang and executable mode on dist/cli.cjs', async () => {
     const cliPath = path.join(repoRoot, 'dist', 'cli.cjs');
@@ -316,11 +356,9 @@ describe('CLI packaging contract', () => {
         maxBuffer: 20 * 1024 * 1024
       }
     );
-    const [packed] = JSON.parse(packResult.stdout) as Array<{
-      filename: string;
-      name: string;
-      files: Array<{ mode: number; path: string }>;
-    }>;
+    const entries = parseNpmPackStdout(packResult.stdout);
+    expect(entries).toHaveLength(1);
+    const packed = entries[0]!;
     expect(packed.name).toBe('@postman-cs/onboarding-resolve-service-token');
     expect(
       packed.files.filter((file) => file.path.startsWith('dist/')).map((file) => file.path).sort()
@@ -443,5 +481,23 @@ describe('CLI packaging contract', () => {
     expect(packagingSource).not.toMatch(/\besbuild\b/);
     expect(packagingSource).not.toMatch(new RegExp(bannedRebuild.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
     expect(packagingSource).not.toMatch(/\bshell:\s*true\b/);
+  });
+});
+
+describe('npm pack --json envelope', () => {
+  const entry = { filename: 'pkg-1.0.0.tgz', name: '@scope/pkg', files: [{ path: 'dist/cli.cjs' }] };
+
+  it('reads the npm 11 array envelope', () => {
+    expect(parseNpmPackStdout(JSON.stringify([entry]))).toEqual([entry]);
+  });
+
+  it('reads the npm 12 object envelope', () => {
+    expect(parseNpmPackStdout(JSON.stringify({ '@scope/pkg': entry }))).toEqual([entry]);
+  });
+
+  it('rejects empty and malformed envelopes', () => {
+    expect(() => parseNpmPackStdout('{}')).toThrow(/no package entries/);
+    expect(() => parseNpmPackStdout(JSON.stringify([{ name: 'x' }]))).toThrow(/without filename/);
+    expect(() => parseNpmPackStdout('not json')).toThrow(SyntaxError);
   });
 });

@@ -175,6 +175,35 @@ describe('runResolveServiceToken', () => {
     expect(harness.secrets).toEqual(['minted-token']);
   });
 
+  test('resolves team ID from the nested team-object /me shape', async () => {
+    const harness = createCore();
+    const dependencies: ResolveDependencies = {
+      core: harness.core,
+      fetcher: async (url) => {
+        if (String(url).endsWith('/service-account-tokens')) {
+          return new Response(JSON.stringify({ access_token: 'minted-token' }), { status: 201 });
+        }
+        return new Response(JSON.stringify({ team: { id: 'team-789' } }), { status: 200 });
+      }
+    };
+
+    const result = await runResolveServiceToken({
+      postmanApiKey: 'pmak-service',
+      postmanRegion: 'us',
+      postmanStack: 'prod',
+      writeGithubSecret: false,
+      accessTokenSecretName: 'POSTMAN_ACCESS_TOKEN',
+      teamIdSecretName: 'POSTMAN_TEAM_ID'
+    }, dependencies);
+
+    expect(result).toEqual({
+      token: 'minted-token',
+      teamId: 'team-789',
+      skipped: false
+    });
+    expect(harness.outputs).toMatchObject({ 'team-id': 'team-789' });
+  });
+
   test.each([
     ['the default GitHub API URL', undefined, 'https://api.github.com'],
     ['a custom GITHUB_API_URL', 'https://github.example/api/v3/', 'https://github.example/api/v3']
