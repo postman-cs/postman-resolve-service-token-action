@@ -42,7 +42,7 @@ This is the same assertion the release workflow runs before publishing the asset
 
 ## What it does
 
-This is the credential *producer* for the onboarding suite. Given a service-account PMAK it mints a fresh, short-lived access token and resolves the team ID, then prints the result as JSON on **stdout** (logs go to stderr, so stdout stays clean to capture):
+This is the credential *producer* for the Postman Enterprise Automation Suite. Given a service-account PMAK it mints a fresh, short-lived access token and resolves the team ID, then prints the result as JSON on **stdout** (logs go to stderr, so stdout stays clean to capture):
 
 ```json
 {
