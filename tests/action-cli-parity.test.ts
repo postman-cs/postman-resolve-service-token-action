@@ -52,3 +52,21 @@ describe('action.yml <-> CLI flag parity', () => {
     expect(extras).toEqual([]);
   });
 });
+
+function actionManifestDescription(): string {
+  const text = readFileSync(resolve(repoRoot, 'action.yml'), 'utf8');
+  for (const line of text.split('\n')) {
+    if (/^inputs:\s*$/.test(line)) break;
+    const match = line.match(/^description:\s*(.*)$/);
+    if (match) return match[1].trim();
+  }
+  throw new Error('No top-level description parsed from action.yml');
+}
+
+describe('action.yml marketplace description', () => {
+  it('fits the GitHub Marketplace 125-character limit', () => {
+    // Marketplace silently keeps the old listing text when the description
+    // exceeds 125 characters, so pin the parsed manifest value length.
+    expect(actionManifestDescription().length).toBeLessThanOrEqual(125);
+  });
+});

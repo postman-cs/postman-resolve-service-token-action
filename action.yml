@@ -1,5 +1,5 @@
 name: 'Postman Enterprise Automation: Service Token'
-description: Recommended credential producer for the Postman Enterprise Automation Suite. Mints a service-account access token and team ID in CI.
+description: Mint a Postman service-account access token and resolve the team ID in CI. Part of the Postman Enterprise Automation Suite.
 author: Postman
 branding:
   icon: unlock
