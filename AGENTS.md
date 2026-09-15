@@ -1,6 +1,6 @@
 # postman-resolve-service-token-action
 
-Credential producer for onboarding suite. Mints fresh service-account access token + resolves team ID in CI, ready to hand to onboarding action or store as repo secrets. Dual entry: GitHub Action (`dist/index.cjs`) + CLI (`dist/cli.cjs`, bin `postman-resolve-service-token`).
+Credential producer for the Postman Enterprise Automation Suite. Mints fresh service-account access token + resolves team ID in CI, ready to hand to onboarding action or store as repo secrets. Dual entry: GitHub Action (`dist/index.cjs`) + CLI (`dist/cli.cjs`, bin `postman-resolve-service-token`).
 
 ## Structure
 
