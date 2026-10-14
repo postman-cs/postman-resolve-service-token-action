@@ -32,7 +32,7 @@ jobs:
           postman-api-key: ${{ secrets.POSTMAN_API_KEY }}
           postman-region: us
 
-      - uses: postman-cs/postman-api-onboarding-action@v3
+      - uses: postman-cs/postman-api-onboarding-action@v4
         with:
           project-name: core-payments
           spec-url: https://raw.githubusercontent.com/postman-cs/postman-resolve-service-token-action/main/examples/core-payments-openapi.yaml
@@ -88,7 +88,7 @@ jobs:
           postman-api-key: ${{ secrets.POSTMAN_API_KEY }}
           postman-region: us
 
-      - uses: postman-cs/postman-api-onboarding-action@v3
+      - uses: postman-cs/postman-api-onboarding-action@v4
         with:
           project-name: core-payments
           spec-url: https://raw.githubusercontent.com/postman-cs/postman-resolve-service-token-action/main/examples/core-payments-openapi.yaml

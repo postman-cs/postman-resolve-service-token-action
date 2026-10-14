@@ -26,6 +26,7 @@ jobs:
   cut:
     if: ${{ github.event_name == 'workflow_dispatch' && inputs.existing_tag != true }}
     runs-on: ubuntu-latest
+    timeout-minutes: 8
     permissions:
       contents: write
     outputs:
@@ -74,6 +75,7 @@ jobs:
     needs: [cut]
     if: ${{ always() && (github.event_name == 'push' || inputs.existing_tag == true || needs.cut.result == 'success') }}
     runs-on: ubuntu-latest
+    timeout-minutes: 3
     outputs:
       release_kind: ${{ steps.release_tag.outputs.release_kind }}
       package_version: ${{ steps.release_tag.outputs.package_version }}
@@ -96,6 +98,7 @@ jobs:
     needs: [cut, classify]
     if: ${{ always() && needs.classify.outputs.release_kind == 'immutable' }}
     runs-on: ubuntu-latest
+    timeout-minutes: 8
     permissions:
       contents: read
     outputs:
@@ -158,6 +161,7 @@ jobs:
     needs: [cut, classify]
     if: ${{ always() && needs.classify.outputs.release_kind == 'immutable' }}
     runs-on: ubuntu-latest
+    timeout-minutes: 8
     permissions:
       contents: read
     steps:
@@ -194,6 +198,7 @@ jobs:
     needs: [cut, classify]
     if: ${{ always() && needs.classify.outputs.release_kind == 'immutable' }}
     runs-on: windows-latest
+    timeout-minutes: 8
     permissions:
       contents: read
     steps:
@@ -221,6 +226,7 @@ jobs:
     needs: [cut, classify, verify-package, verify-package-windows, build-sea]
     if: ${{ always() && needs.classify.outputs.release_kind == 'immutable' && needs.verify-package.result == 'success' && needs.verify-package-windows.result == 'success' && needs.build-sea.result == 'success' }}
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     permissions:
       contents: write
       id-token: write
@@ -393,6 +399,7 @@ jobs:
     needs: [cut, classify, publish]
     if: ${{ always() && needs.classify.outputs.release_kind == 'immutable' && needs.publish.result == 'success' }}
     runs-on: ubuntu-latest
+    timeout-minutes: 3
     permissions:
       contents: write
     steps:
@@ -425,6 +432,7 @@ jobs:
     if: ${{ needs.classify.outputs.release_kind == 'immutable' && needs.publish.result == 'success' }}
     continue-on-error: true
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v7
