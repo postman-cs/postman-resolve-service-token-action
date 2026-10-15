@@ -19,6 +19,7 @@
     "verify:bundle": "npm run bundle && node scripts/verify-dist-artifact.mjs",
     "docs:tables": "node scripts/render-action-tables.mjs --write",
     "docs:pins": "node scripts/check-doc-pins.mjs",
+    "docs:pins:write": "node scripts/check-doc-pins.mjs --write",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "test": "vitest run && node --test .github/scripts/dispatch-e2e-monitor.test.mjs",
